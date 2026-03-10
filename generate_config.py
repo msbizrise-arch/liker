@@ -19,14 +19,14 @@ HELP_MSG = """📖 BOT COMMANDS & GUIDE
 ━━━━━━━━━━━━━━━━━━━
 1️⃣ SET REACTION ON A SPECIFIC POST:
 
-/set_reactions — channel_id: -100XXXXXXXXX — post_link: https://t.me/yourchannel/19 — reactions: ❤ 100
+`/set_reactions — channel_id: -100XXXXXXXXX — post_link: https://t.me/yourchannel/19 — reactions: ❤ 100`
 
 👆 This will add ❤ with count 100 on that post.
 
 ━━━━━━━━━━━━━━━━━━━
 2️⃣ SET DEFAULT REACTION FOR ALL FUTURE POSTS:
 
-/set_reactions — channel_id: -100XXXXXXXXX — reactions: ❤ 50
+`/set_reactions — channel_id: -100XXXXXXXXX — reactions: ❤ 50`
 
 👆 Every new post in your channel will auto-get ❤ reaction.
 
