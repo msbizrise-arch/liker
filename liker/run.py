@@ -10,6 +10,9 @@ from liker.setup.daemons import create_daemon_instances
 import os
 from flask import Flask
 from threading import Thread
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Ab original imports chalenge, jaise from liker.setup import logs
 
 app = Flask(__name__)
 
