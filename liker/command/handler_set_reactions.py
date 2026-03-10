@@ -10,11 +10,6 @@ logger = logging.getLogger(__file__)
 
 
 def parse_reactions_with_counts(reactions_args: list):
-    """
-    Parse reactions list with optional counts.
-    Input:  ['❤', '100', '👍', '50']  or  ['❤', '👍', '😡']
-    Output: [('❤', 100), ('👍', 50)]  or  [('❤', 0), ('👍', 0), ('😡', 0)]
-    """
     result = []
     i = 0
     while i < len(reactions_args):
@@ -33,9 +28,42 @@ def parse_reactions_with_counts(reactions_args: list):
 
 
 def extract_message_id_from_link(post_link: str) -> int:
-    """Extract message_id from https://t.me/channel/19 -> 19"""
     parts = post_link.rstrip('/').split('/')
     return int(parts[-1])
+
+
+def parse_raw_args(raw_text: str) -> dict:
+    """
+    Manually parse command args from raw text.
+    Fixes em dash (—) and en dash (–) → -- before parsing.
+    """
+    # Fix all dash variants Telegram auto-converts
+    fixed = raw_text \
+        .replace('\u2014', '--') \
+        .replace('\u2013', '--') \
+        .replace('\u2012', '--')
+
+    args = {}
+    import shlex
+    try:
+        tokens = shlex.split(fixed)
+    except ValueError:
+        tokens = fixed.split()
+
+    i = 0
+    while i < len(tokens):
+        token = tokens[i]
+        if token.startswith('--'):
+            key = token[2:]
+            values = []
+            i += 1
+            while i < len(tokens) and not tokens[i].startswith('--'):
+                values.append(tokens[i])
+                i += 1
+            args[key] = values if len(values) > 1 else (values[0] if values else True)
+        else:
+            i += 1
+    return args
 
 
 class CommandHandlerSetReactions(CommandHandler):
@@ -50,26 +78,42 @@ class CommandHandlerSetReactions(CommandHandler):
 
     def handle(self, context: CommandContext):
         if context.command == '/set_reactions':
-            channel_id = context.get_mandatory_arg('channel_id')
-            reactions_args = context.get_mandatory_arg('reactions')
-            post_link = context.get_arg('post_link')  # optional
+
+            # ── Parse from raw message text to fix em dash issue ──
+            raw_text = context.sender_message.text or ''
+            raw_args = parse_raw_args(raw_text)
+
+            channel_id = raw_args.get('channel_id')
+            reactions_raw = raw_args.get('reactions')
+            post_link = raw_args.get('post_link')
+
+            if not channel_id:
+                context.reply('Missing --channel_id', log_level=logging.INFO)
+                return
+            if not reactions_raw:
+                context.reply('Missing --reactions', log_level=logging.INFO)
+                return
+
+            # reactions_raw can be str or list
+            if isinstance(reactions_raw, str):
+                reactions_raw = [reactions_raw]
 
             if not telegram_bot_utils.is_proper_chat_id(channel_id):
                 context.reply('channel_id should be a number or start from @',
                               log_level=logging.INFO)
                 return
 
-            # Parse reactions with optional counts
-            reactions_with_counts = parse_reactions_with_counts(reactions_args)
+            reactions_with_counts = parse_reactions_with_counts(reactions_raw)
             reactions_only = [r for r, _ in reactions_with_counts]
-            has_counts = any(c > 0 for _, c in reactions_with_counts)
 
             if post_link:
-                # ── Apply reactions to a SPECIFIC post ──
+                # ── Apply to specific post ──
+                if isinstance(post_link, list):
+                    post_link = post_link[0]
                 try:
                     message_id = extract_message_id_from_link(post_link)
                 except (ValueError, IndexError):
-                    context.reply('Invalid post_link format. Use: https://t.me/channel/19',
+                    context.reply('Invalid post_link. Use: https://t.me/channel/19',
                                   log_level=logging.WARNING)
                     return
 
@@ -90,7 +134,7 @@ class CommandHandlerSetReactions(CommandHandler):
                         log_level=logging.INFO
                     )
             else:
-                # ── Set default reactions for ALL future posts ──
+                # ── Set default for all future posts ──
                 set_successfully = self.enabling_manager.try_set_reactions(
                     channel_id=channel_id,
                     reactions=reactions_only,
@@ -104,4 +148,3 @@ class CommandHandlerSetReactions(CommandHandler):
                     )
         else:
             raise ValueError(f'Unhandled command: {context.command}')
-
