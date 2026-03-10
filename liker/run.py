@@ -1,5 +1,4 @@
 # noinspection PyUnresolvedReferences
-from liker.setup import logs  # has import side effect
 import inject
 from tengi import App
 
