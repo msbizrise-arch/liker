@@ -16,9 +16,9 @@
   "remembered_passwords": {
   },
   "enable_only_for": [],
-  "last_reactions": 10000,
+  "last_reactions": 1000000,
   "last_reactions_save_seconds": 10,
-  "channel_rate_per_minute": 20,
+  "channel_rate_per_minute": 100,
   "channel_rate_min_seconds": 1,
   "global_rate_per_second": 30,
   "reply_markup_trail": 100,
