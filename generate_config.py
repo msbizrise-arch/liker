@@ -12,6 +12,7 @@ config = {
     "hash_bytes": int(os.environ.get("HASH_BYTES", "10")),
     "bot_token": os.environ.get("BOT_TOKEN", ""),
     "use_telegram_user_api": os.environ.get("USE_TELEGRAM_USER_API", "false").lower() == "true",
+    "use_native_reactions": os.environ.get("USE_NATIVE_REACTIONS", "false").lower() == "true",
     "telegram_api_session": os.environ.get("TELEGRAM_API_SESSION", "liker"),
     "telegram_api_id": int(os.environ.get("TELEGRAM_API_ID", "0")),
     "telegram_api_hash": os.environ.get("TELEGRAM_API_HASH", ""),
