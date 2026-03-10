@@ -1,9 +1,13 @@
 from tengi import CommandParam, tengi_command_params
 
-# Note: channel_id, reactions, post_link are NOT registered here
-# because our handler parses them directly from raw message text.
-# This prevents tengi from rejecting commands with custom format.
 command_params = tengi_command_params.params + [
+    CommandParam(name='--channel_id',
+                 help_str='Channel id',
+                 param_type=str),
+    CommandParam(name='--reactions',
+                 help_str='Reaction array separated with " "',
+                 param_type=str,
+                 nargs='+'),
     CommandParam(name='--message_id',
                  help_str='Message id',
                  param_type=int),
