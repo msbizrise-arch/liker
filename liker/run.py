@@ -28,6 +28,16 @@ def main():
     inject.configure(bind_app_dependencies)
     create_daemon_instances()
 
+    # ── Fix: Telegram auto-converts "--" to "—" (em dash), convert it back ──
+    from tengi import TelegramBot
+    bot = inject.instance(TelegramBot).bot
+
+    @bot.middleware_handler(update_types=['message'])
+    def fix_em_dash(bot_instance, message):
+        if message.text:
+            # em dash (—) and en dash (–) → double dash (--)
+            message.text = message.text.replace('\u2014', '--').replace('\u2013', '--')
+
     # Flask ko background thread mein start karo
     flask_thread = Thread(target=run_flask)
     flask_thread.daemon = True
