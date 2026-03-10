@@ -6,10 +6,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import inject
 from flask import Flask
+from telebot import apihelper
 from tengi import App
 
 from liker.setup.dependencies import bind_app_dependencies
 from liker.setup.daemons import create_daemon_instances
+
+# â”€â”€ Required to enable middleware in pyTelegramBotAPI â”€â”€
+apihelper.ENABLE_MIDDLEWARE = True
 
 # Flask app for Render port binding
 flask_app = Flask(__name__)
@@ -28,14 +32,13 @@ def main():
     inject.configure(bind_app_dependencies)
     create_daemon_instances()
 
-    # ── Fix: Telegram auto-converts "--" to "—" (em dash), convert it back ──
+    # â”€â”€ Fix: Telegram auto-converts "--" to "â€”" (em dash), convert it back â”€â”€
     from tengi import TelegramBot
     bot = inject.instance(TelegramBot).bot
 
     @bot.middleware_handler(update_types=['message'])
     def fix_em_dash(bot_instance, message):
         if message.text:
-            # em dash (—) and en dash (–) → double dash (--)
             message.text = message.text.replace('\u2014', '--').replace('\u2013', '--')
 
     # Flask ko background thread mein start karo
